@@ -1,19 +1,21 @@
-import { Duration, Stack, StackProps } from 'aws-cdk-lib';
-import * as sns from 'aws-cdk-lib/aws-sns';
-import * as subs from 'aws-cdk-lib/aws-sns-subscriptions';
-import * as sqs from 'aws-cdk-lib/aws-sqs';
-import { Construct } from 'constructs';
+import { Stack, StackProps } from "aws-cdk-lib";
+import { Construct } from "constructs";
+import { RetentionDays } from "aws-cdk-lib/aws-logs";
+import { Lambda } from "./constructors/lambda";
+import { DynamoDB } from "./constructors/dynamodb";
 
 export class LambdaTypescriptCdkStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    const queue = new sqs.Queue(this, 'LambdaTypescriptCdkQueue', {
-      visibilityTimeout: Duration.seconds(300)
+    const lambda = new Lambda(this, "LambdaTypescriptCdk", {
+      functionName: "LambdaTypescriptCdk",
+      logRetentionDays: RetentionDays.ONE_MONTH,
     });
 
-    const topic = new sns.Topic(this, 'LambdaTypescriptCdkTopic');
-
-    topic.addSubscription(new subs.SqsSubscription(queue));
+    new DynamoDB(this, "DynamoDB", {
+      tableName: "LambdaTypescriptCdkTable",
+      granteeLambda: lambda.fn,
+    });
   }
 }
